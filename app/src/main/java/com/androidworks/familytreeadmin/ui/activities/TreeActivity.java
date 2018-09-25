@@ -1,12 +1,17 @@
 package com.androidworks.familytreeadmin.ui.activities;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.androidworks.familytreeadmin.R;
@@ -61,8 +66,10 @@ public class TreeActivity extends AppCompatActivity {
         treeView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(TreeActivity.this, ((Member) parent.getAdapter().getItem(position)).getName(), Toast.LENGTH_SHORT).show();
-
+//                Toast.makeText(TreeActivity.this, ((Member) parent.getAdapter().getItem(position)).getName(), Toast.LENGTH_SHORT).show();
+                Member clickedMember = (Member) parent.getAdapter().getItem(position);
+                Log.d("NIK","Position " + position);
+                update(clickedMember, position);
             }
         });
     }
@@ -103,7 +110,7 @@ public class TreeActivity extends AppCompatActivity {
     private void initViews() {
         ArrayList<Member> members = convertToList(DataStore.getInstance(this).getMembersJSON());
         TreeNode rootNode = new TreeNode(getRootMember());
-        TreeNode firstGenNode = null;
+        TreeNode firstGenNode = null, secondGenNode = null, thirdGenNode = null, fourthGenNode = null, fifthGenNode = null, sixthGenNode = null;
 
         for (int i = 0; i < members.size(); i++) {
             Member member = members.get(i);
@@ -113,12 +120,16 @@ public class TreeActivity extends AppCompatActivity {
                     rootNode.addChild(firstGenNode);
                     break;
                 case 2:
-                    final TreeNode child3 = new TreeNode(member);
+                    secondGenNode = new TreeNode(member);
                     if (firstGenNode != null) {
-                        firstGenNode.addChild(child3);
+                        firstGenNode.addChild(secondGenNode);
                     }
                     break;
                 case 3:
+                    thirdGenNode = new TreeNode(member);
+                    if (secondGenNode != null) {
+                        secondGenNode.addChild(thirdGenNode);
+                    }
                     break;
                 case 4:
                     Log.d(TAG, "Gen 1");
@@ -137,6 +148,7 @@ public class TreeActivity extends AppCompatActivity {
         adapter.setRootNode(rootNode);
     }
 
+
     private Member getRootMember() {
         Member rootMember = new Member();
 
@@ -154,6 +166,148 @@ public class TreeActivity extends AppCompatActivity {
     public ArrayList<Member> convertToList(String JSON) {
         return gson.fromJson(JSON, new TypeToken<ArrayList<Member>>() {
         }.getType());
+    }
+
+    private void update(final Member clickedMember, final int position) {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        final View dialogView = View.inflate(this, R.layout.choose_member_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        final Button childBT = (Button) dialogView.findViewById(R.id.bt_child);
+        final Button spouseBT = (Button) dialogView.findViewById(R.id.bt_spouse);
+        final Button siblingBT = (Button) dialogView.findViewById(R.id.bt_sibling);
+
+        dialogBuilder.setTitle("Add a member");
+//        dialogBuilder.setMessage("Choose the type of member you want to add");
+//        dialogBuilder.setPositiveButton("Save", null);
+//        dialogBuilder.setNegativeButton("Cancel", null);
+        final AlertDialog alertDialog = dialogBuilder.create();
+
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+
+                Button button = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                    }
+                });
+            }
+        });
+
+        childBT.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(TreeActivity.this, "Child clicked", Toast.LENGTH_SHORT).show();
+                addMemberDetails(clickedMember.getGeneration() + 1, position);
+                alertDialog.dismiss();
+            }
+        });
+
+        spouseBT.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(TreeActivity.this, "Spouse clicked", Toast.LENGTH_SHORT).show();
+                clickedMember.setGeneration(clickedMember.getGeneration() + 1);
+                alertDialog.dismiss();
+            }
+        });
+
+        siblingBT.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(TreeActivity.this, "Sibling clicked", Toast.LENGTH_SHORT).show();
+                clickedMember.setGeneration(clickedMember.getGeneration());
+                addMemberDetails(clickedMember.getGeneration(), position);
+                alertDialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    private void addMemberDetails(final int generation, final int position) {
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        final View dialogView = View.inflate(this, R.layout.member_details_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText nameET = (EditText) dialogView.findViewById(R.id.et_member_name);
+        final EditText nickNameET = (EditText) dialogView.findViewById(R.id.et_member_nick_name);
+        final EditText birthYearET = (EditText) dialogView.findViewById(R.id.et_member_birth_year);
+        final EditText locationET = (EditText) dialogView.findViewById(R.id.et_member_location);
+        final EditText deathYearET = (EditText) dialogView.findViewById(R.id.et_member_death_year);
+        final CheckBox isDeadCB = (CheckBox) dialogView.findViewById(R.id.cb_is_dead);
+
+        isDeadCB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isDeadCB.isChecked())
+                    deathYearET.setVisibility(View.VISIBLE);
+                else
+                    deathYearET.setVisibility(View.GONE);
+            }
+        });
+
+        dialogBuilder.setPositiveButton("Done", null);
+        dialogBuilder.setTitle("Edit Details");
+//        dialogBuilder.setMessage("Choose the type of member you want to add");
+        final AlertDialog alertDialog = dialogBuilder.create();
+
+        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+
+                Button button = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (!nameET.getText().toString().isEmpty() &&
+                                !nickNameET.getText().toString().isEmpty() &&
+                                !birthYearET.getText().toString().isEmpty() &&
+                                !locationET.getText().toString().isEmpty()) {
+
+                            Member member = new Member();
+                            member.setName(nameET.getText().toString());
+                            member.setNickName(nickNameET.getText().toString());
+                            member.setLocation(locationET.getText().toString());
+                            member.setGeneration(generation);
+                            member.setBirthYear(Integer.parseInt(birthYearET.getText().toString()));
+                            member.setDead(isDeadCB.isChecked());
+                            if (isDeadCB.isChecked() && !deathYearET.getText().toString().isEmpty())
+                                member.setDeathYear(Integer.parseInt(deathYearET.getText().toString()));
+
+                            addMember(member, position);
+                            Toast.makeText(TreeActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                            alertDialog.dismiss();
+                        } else {
+                            Toast.makeText(TreeActivity.this, "Please enter all fields", Toast.LENGTH_SHORT).show();
+                        }
+
+
+                    }
+                });
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    private void addMember(Member member, int position) {
+//        Member newMember = new Member();
+//        member.setBirthYear(Integer.parseInt(birth.getText().toString()));
+//        member.setDead(isDead.isChecked());
+//        member.setGeneration(Integer.parseInt(generation.getText().toString()));
+//        member.setDeathYear(Integer.parseInt(death.getText().toString()));
+//        member.setName(name.getText().toString());
+//        member.setNickName(nickName.getText().toString());
+//        member.setLocation(location.getText().toString());
+
+        DataStore.getInstance(TreeActivity.this).storeMembers(member, position);
+        myRef.setValue(DataStore.getInstance(TreeActivity.this).getMembersJSON());
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

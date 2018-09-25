@@ -49,6 +49,19 @@ public class DataStore {
     }
 
     /**
+     * to store location logs
+     *
+     * @param member
+     */
+    public void storeMembers(Member member, int position) {
+
+        members = gson.fromJson(sharedPreferences.getString(Constants.SHARED_PREF_MEMBERS, members.toString()), new TypeToken<ArrayList<Member>>() {
+        }.getType());
+        members.add(position,member);
+        sharedPreferences.edit().putString(Constants.SHARED_PREF_MEMBERS, gson.toJson(members)).apply();
+    }
+
+    /**
      * to get location logs
      *
      * @return
