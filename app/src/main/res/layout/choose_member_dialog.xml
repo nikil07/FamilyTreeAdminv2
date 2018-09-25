@@ -1,0 +1,27 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="10dp"
+    android:layout_marginStart="10dp"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <Button
+        android:id="@+id/bt_sibling"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sibling" />
+
+    <Button
+        android:id="@+id/bt_spouse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Spouse" />
+
+    <Button
+        android:id="@+id/bt_child"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Child" />
+
+</LinearLayout>
